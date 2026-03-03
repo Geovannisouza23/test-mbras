@@ -52,9 +52,14 @@ jobs:
       - name: Run performance test
         run: go test ./internal/test -run TestPerformance_AnalyzeFeed -v
 
-      - name: Check for forbidden debug prints
+      - name: Verificar prints de debug proibidos
         run: |
-          ! grep -rE 'fmt\.Print|log\.Print|println|print\(' --exclude-dir=.git --exclude-dir=vendor .
+          if grep -rE 'fmt\.Print|log\.Print|println|print\(' --exclude-dir=.git --exclude-dir=vendor .; then
+            echo "ERRO: Encontrado uso proibido de prints de debug!" >&2
+            exit 1
+          else
+            echo "Nenhum print de debug proibido encontrado."
+          fi
 
       - name: Check for forbidden files
         run: |
