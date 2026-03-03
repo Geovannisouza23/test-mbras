@@ -1,0 +1,5 @@
+# Exemplo de configuração
+# configs/app.yaml
+server:
+  port: 8080
+  timeout: 30s

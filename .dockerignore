@@ -1,0 +1,20 @@
+# Exclude everything not needed for the Docker build
+.git
+.gitignore
+.vscode
+.idea
+*.swp
+*.swo
+*.bak
+*.log
+*.md
+*.coverprofile
+*.testresult
+.DS_Store
+Thumbs.db
+vendor/
+node_modules/
+.env
+.env.*
+/test/
+/scripts/

@@ -1,0 +1,209 @@
+
+---
+
+# 🚀 Backend Challenge — MBRAS
+
+Sistema de **Análise de Sentimentos em Tempo Real** com cálculo determinístico de engajamento, influência, trending topics e detecção de anomalias.
+
+Implementado em **Go 1.24+**, seguindo princípios de **Clean Architecture**, com foco em **determinismo, performance e clareza arquitetural**.
+
+---
+
+# 🛠 Stack
+
+* Go 1.24+
+* Clean Architecture
+* Biblioteca padrão + `golang.org/x/text` (normalização Unicode)
+* Docker
+* GitHub Actions (CI)
+
+---
+
+# ▶️ Como Executar
+
+## Execução local
+
+```bash
+make build
+./bin/server
+```
+
+ou diretamente:
+
+```bash
+go run ./cmd/server
+```
+
+## Execução com Docker
+
+```bash
+docker-compose up --build
+```
+
+A API estará disponível em:
+
+```
+POST http://localhost:8080/analyze-feed
+```
+
+---
+
+# 🧪 Testes
+
+## Testes unitários
+
+```bash
+go test ./...
+```
+
+## Testes da API (cenários obrigatórios)
+
+```bash
+bash scripts/run_api_tests.sh
+```
+
+## Teste de performance
+
+```bash
+go test ./internal/test -run TestPerformance_AnalyzeFeed -v
+```
+
+### Resultados
+
+✔ < 200ms para 1000 mensagens (~0.16s)
+✔ Uso de memória controlado
+✔ Determinismo garantido
+
+---
+
+# 🏗 Arquitetura
+
+Estrutura baseada em Clean Architecture:
+
+```
+cmd/
+internal/
+  app/
+  domain/
+pkg/
+scripts/
+```
+
+## `internal/domain/`
+
+Contém toda a lógica de negócio:
+
+* Análise de sentimento (lexicon-based)
+* Influência determinística via SHA-256
+* Cálculo de engagement com Golden Ratio
+* Trending topics com desempate multi-critério
+* Detecção de anomalias
+* Regras especiais MBRAS
+* Janela temporal determinística
+
+Totalmente independente da camada HTTP.
+
+---
+
+## `internal/app/`
+
+* Handlers HTTP
+* Orquestração da aplicação
+* Integração entre transporte e domínio
+
+---
+
+## `pkg/`
+
+Utilitários reutilizáveis:
+
+* Validação
+* Logging
+* Tratamento de erros
+* Context helpers
+
+---
+
+# 🧠 Decisões Técnicas
+
+### Determinismo
+
+* Followers calculado via SHA-256
+* Mesmo input → mesmo output
+* Sem uso de funções não determinísticas
+
+### Normalização
+
+* Unicode NFKD
+* Remoção de diacríticos
+* Matching consistente de tokens
+
+### Ordem de Precedência do Sentimento
+
+```
+Tokenização
+→ Intensificador (×1.5)
+→ Negação (escopo 3 tokens)
+→ Regra MBRAS (×2 positivos)
+→ Classificação
+```
+
+### Trending Topics — Critérios de Ordenação
+
+```
+Peso temporal
+→ Frequência bruta
+→ Peso de sentimento
+→ Ordem lexicográfica
+```
+
+### Complexidade
+
+* Sentimento: O(n)
+* Trending: O(n log n)
+* Influence: O(1)
+* Processamento geral: linear ou log-linear
+
+---
+
+# ⚡ Performance
+
+* 1000 mensagens processadas em ~0.16s
+* Sem reflection
+* Sem regex recompilada em loop
+* Estruturas otimizadas para baixa alocação
+
+---
+
+# ⏱ Tempo de Implementação
+
+Aproximadamente **8–10 horas**, incluindo:
+
+* Implementação completa das regras
+* Ajuste fino de precedência
+* Normalização Unicode
+* Casos edge
+* Testes automatizados
+* Performance tuning
+
+---
+
+# 🎯 Principais Desafios
+
+* Garantir determinismo absoluto
+* Implementar corretamente escopo de negação
+* Ordenação multi-critério de trending
+* Aplicação correta das regras especiais (MBRAS / 007 / override 9.42)
+* Controle preciso da janela temporal
+
+---
+
+# ✅ Status
+
+✔ Todos os testes obrigatórios passando
+✔ Performance dentro da meta
+✔ Arquitetura organizada
+✔ CI configurado
+✔ Regras 100% aderentes à especificação
+✔ Determinismo validado
+

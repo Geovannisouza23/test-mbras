@@ -1,0 +1,40 @@
+# Binaries
+/bin/
+/server
+*.exe
+*.out
+*.test
+
+# Build artifacts
+/build/
+
+# Dependency directories
+vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test results
+*.coverprofile
+*.testresult
+
+# Docker
+*.pid
+
+# Go modules cache
+.gocache/
+
+# Ignore environment files
+.env
+.env.*

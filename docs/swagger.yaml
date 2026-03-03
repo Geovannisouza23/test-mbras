@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: MBRAS Sentiment Analysis API
+  version: 1.0.0
+  description: API para análise de sentimentos, engajamento, influência, trending topics e detecção de anomalias.
+servers:
+  - url: http://localhost:8080
+paths:
+  /analyze-feed:
+    post:
+      summary: Analisa um feed de mensagens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeFeedRequest'
+      responses:
+        '200':
+          description: Resultado da análise
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeFeedResponse'
+        '400':
+          description: Erro de requisição
+        '422':
+          description: Parâmetro não suportado
+components:
+  schemas:
+    AnalyzeFeedRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        time_window_minutes:
+          type: integer
+          example: 10
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        reactions:
+          type: integer
+        shares:
+          type: integer
+        views:
+          type: integer
+        hashtags:
+          type: array
+          items:
+            type: string
+    AnalyzeFeedResponse:
+      type: object
+      properties:
+        SentimentDistribution:
+          type: object
+          properties:
+            Positive:
+              type: number
+            Neutral:
+              type: number
+            Negative:
+              type: number
+        EngagementScore:
+          type: number
+        TrendingTopics:
+          type: array
+          items:
+            type: string
+        InfluenceRanking:
+          type: object
+          additionalProperties:
+            type: number
+        AnomalyDetected:
+          type: boolean
+        AnomalyType:
+          type: string
+        Flags:
+          type: object
+          properties:
+            MbrasEmployee:
+              type: boolean
+            SpecialPattern:
+              type: boolean
+            CandidateAwareness:
+              type: boolean
+        ProcessingTimeMs:
+          type: number
