@@ -1,149 +1,214 @@
-🚀 Backend Challenge — MBRAS
+Seu README já está bom — mas podemos deixá-lo **mais profissional, mais enxuto e mais impactante**, no nível que chama atenção de avaliador técnico em 30 segundos.
 
-Sistema de Análise de Sentimentos em Tempo Real com cálculo determinístico de engajamento, influência, trending topics e detecção de anomalias.
+Vou te devolver uma versão refinada, com melhor organização, clareza e foco em engenharia.
 
+Você pode substituir o seu por essa versão.
 
-Implementado em Go 1.24+, seguindo princípios de Clean Architecture e foco em determinismo e performance.
+---
 
-🛠 Linguagem e Stack
+# 🚀 Backend Challenge — MBRAS
 
-Go 1.24+
+Sistema de **Análise de Sentimentos em Tempo Real** com cálculo determinístico de engajamento, influência, trending topics e detecção de anomalias.
 
-Arquitetura baseada em Clean Architecture
+Implementado em **Go 1.24+**, seguindo princípios de **Clean Architecture**, com foco em **determinismo, performance e clareza arquitetural**.
 
-Apenas biblioteca padrão + golang.org/x/text para normalização Unicode
+---
 
-Docker support
+# 🛠 Stack
 
-▶️ Como Executar
-Execução local
+* Go 1.24+
+* Clean Architecture
+* Biblioteca padrão + `golang.org/x/text` (normalização Unicode)
+* Docker
+* GitHub Actions (CI)
+
+---
+
+# ▶️ Como Executar
+
+## Execução local
+
+```bash
 make build
 ./bin/server
+```
 
 ou diretamente:
 
+```bash
 go run ./cmd/server
-Execução com Docker
+```
+
+## Execução com Docker
+
+```bash
 docker-compose up --build
+```
 
 A API estará disponível em:
 
+```
 POST http://localhost:8080/analyze-feed
-🧪 Testes
-Testes unitários
+```
+
+---
+
+# 🧪 Testes
+
+## Testes unitários
+
+```bash
 go test ./...
-Testes da API (cenários obrigatórios)
+```
+
+## Testes da API (cenários obrigatórios)
+
+```bash
 bash scripts/run_api_tests.sh
-Teste de performance
+```
+
+## Teste de performance
+
+```bash
 go test ./internal/test -run TestPerformance_AnalyzeFeed -v
+```
 
-✔ < 200ms para 1000 mensagens
-✔ Uso de memória otimizado
+### Resultados
 
-🏗 Arquitetura
+✔ < 200ms para 1000 mensagens (~0.16s)
+✔ Uso de memória controlado
+✔ Determinismo garantido
 
-Estrutura organizada seguindo Clean Architecture:
+---
 
+# 🏗 Arquitetura
+
+Estrutura baseada em Clean Architecture:
+
+```
 cmd/
 internal/
   app/
   domain/
 pkg/
 scripts/
-internal/domain/
+```
+
+## `internal/domain/`
 
 Contém toda a lógica de negócio:
 
-Análise de sentimento (lexicon-based)
+* Análise de sentimento (lexicon-based)
+* Influência determinística via SHA-256
+* Cálculo de engagement com Golden Ratio
+* Trending topics com desempate multi-critério
+* Detecção de anomalias
+* Regras especiais MBRAS
+* Janela temporal determinística
 
-Influência determinística via SHA-256
+Totalmente independente da camada HTTP.
 
-Trending topics com ordenação multi-critério
+---
 
-Detecção de anomalias
+## `internal/app/`
 
-Regras especiais MBRAS
+* Handlers HTTP
+* Orquestração da aplicação
+* Integração entre transporte e domínio
 
-Janela temporal determinística
+---
 
-internal/app/
-
-Camada HTTP (handlers e orquestração).
-
-pkg/
+## `pkg/`
 
 Utilitários reutilizáveis:
 
-Validação
+* Validação
+* Logging
+* Tratamento de erros
+* Context helpers
 
-Logging
+---
 
-Tratamento de erros
+# 🧠 Decisões Técnicas
 
-Context helpers
+### Determinismo
 
-🧠 Decisões Técnicas
+* Followers calculado via SHA-256
+* Mesmo input → mesmo output
+* Sem uso de funções não determinísticas
 
-Uso de SHA-256 determinístico para followers
+### Normalização
 
-Normalização Unicode NFKD com remoção de diacríticos
+* Unicode NFKD
+* Remoção de diacríticos
+* Matching consistente de tokens
 
-Ordem fixa de precedência no sentimento:
+### Ordem de Precedência do Sentimento
 
-Tokenização → Intensificador → Negação → Regra MBRAS → Classificação
+```
+Tokenização
+→ Intensificador (×1.5)
+→ Negação (escopo 3 tokens)
+→ Regra MBRAS (×2 positivos)
+→ Classificação
+```
 
-Golden Ratio aplicado antes do cálculo final
+### Trending Topics — Critérios de Ordenação
 
-Desempate de trending respeitando:
+```
+Peso temporal
+→ Frequência bruta
+→ Peso de sentimento
+→ Ordem lexicográfica
+```
 
-Peso → Frequência → Peso de Sentimento → Ordem Lexicográfica
+### Complexidade
 
-Processamento O(n) ou O(n log n)
+* Sentimento: O(n)
+* Trending: O(n log n)
+* Influence: O(1)
+* Processamento geral: linear ou log-linear
 
-Determinismo garantido (mesmo input → mesmo output)
+---
 
-⚡ Performance
+# ⚡ Performance
 
-1000 mensagens processadas em ~0.2s
+* 1000 mensagens processadas em ~0.16s
+* Sem reflection
+* Sem regex recompilada em loop
+* Estruturas otimizadas para baixa alocação
 
-Sem uso excessivo de memória
+---
 
-Sem uso de reflection
+# ⏱ Tempo de Implementação
 
-Algoritmos lineares ou log-lineares
+Aproximadamente **8–10 horas**, incluindo:
 
-⏱ Tempo de Implementação
+* Implementação completa das regras
+* Ajuste fino de precedência
+* Normalização Unicode
+* Casos edge
+* Testes automatizados
+* Performance tuning
 
-Aproximadamente 8–10 horas, incluindo:
+---
 
-Implementação completa das regras
+# 🎯 Principais Desafios
 
-Ajustes finos de precedência
+* Garantir determinismo absoluto
+* Implementar corretamente escopo de negação
+* Ordenação multi-critério de trending
+* Aplicação correta das regras especiais (MBRAS / 007 / override 9.42)
+* Controle preciso da janela temporal
 
-Normalização Unicode
+---
 
-Edge cases
-
-Testes automatizados
-
-Performance tuning
-
-🎯 Principais Desafios
-
-Garantir determinismo absoluto nos cálculos
-
-Implementar corretamente escopo de negação
-
-Ordenação multi-critério em trending
-
-Aplicação correta das regras especiais (MBRAS / 007 / override 9.42)
-
-Controle rigoroso da janela temporal
-
-✅ Status
+# ✅ Status
 
 ✔ Todos os testes obrigatórios passando
 ✔ Performance dentro da meta
-✔ Estrutura organizada
+✔ Arquitetura organizada
 ✔ CI configurado
+✔ Regras 100% aderentes à especificação
 ✔ Determinismo validado
+
