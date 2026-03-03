@@ -1,11 +1,15 @@
 package domain
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 
+	"golang.org/x/text/transform"
 	"golang.org/x/text/unicode/norm"
 )
+
+var reTokenize = regexp.MustCompile(`\p{L}+[\p{Mn}]*|\d+`)
 
 type SentimentAnalyzer struct {
 	Lexicon      map[string]float64
@@ -25,106 +29,83 @@ func NewSentimentAnalyzer(
 	}
 }
 
-type SentimentResult struct {
-	Score          float64
-	Classification string
-	Excluded       bool
-}
-
 func (s *SentimentAnalyzer) Analyze(msg Message) SentimentResult {
+	var (
+		negateScopes []int // cada item é o número de tokens restantes sob negação
+		intensify    bool
+		scoreSum     float64
+		nAnalyzed    int
+	)
 	contentNorm := strings.TrimSpace(strings.ToLower(msg.Content))
-
-	// META case
 	if contentNorm == "teste técnico mbras" {
 		return SentimentResult{Excluded: true}
 	}
 
-	tokens := Tokenize(msg.Content)
-	normTokens := make([]string, len(tokens))
-	for i, t := range tokens {
-		normTokens[i] = NormalizeToken(t)
-	}
-
-	var (
-		scoreSum  float64
-		nAnalyzed int
-		negScopes []int
-	)
-
-	for i := 0; i < len(tokens); i++ {
-		orig := tokens[i]
-		norm := normTokens[i]
-
-		// Ignora hashtags
-		if strings.HasPrefix(orig, "#") {
-			negScopes = decreaseScopes(negScopes)
-			continue
-		}
-
-		// Intensificador
-		mult := 1.0
-		if _, ok := s.Intensifiers[norm]; ok {
-			if i+1 < len(normTokens) {
-				next := normTokens[i+1]
-				if _, ok2 := s.Lexicon[next]; ok2 &&
-					!strings.HasPrefix(tokens[i+1], "#") {
-					mult = 1.5
-				}
-			}
-			negScopes = decreaseScopes(negScopes)
-			continue
-		}
-
-		// Negação
+	// Tokenização preservando acentos para contagem, normalizando só para matching
+	matches := reTokenize.FindAllString(msg.Content, -1)
+	tokens := matches
+	// DEBUG: Log tokens e valores
+	for _, t := range tokens {
+		norm := NormalizeToken(t)
+		// Negação: escopo de 1 token
 		if _, ok := s.Negations[norm]; ok {
-			negScopes = append(negScopes, 3)
+			negateScopes = append(negateScopes, 1)
 			continue
 		}
-
-		val, ok := s.Lexicon[norm]
+		// Intensificador: aplica ao próximo token
+		if _, ok := s.Intensifiers[norm]; ok {
+			intensify = true
+			continue
+		}
+		v, ok := s.Lexicon[norm]
 		if !ok {
-			negScopes = decreaseScopes(negScopes)
+			// Do not decrement negation scopes here; only after sentiment word
 			continue
 		}
-
-		v := val * mult
-
-		// Aplica negação se houver escopo ativo
-		if len(negScopes)%2 == 1 {
-			v = -v
+		// Primeiro aplica intensificador, depois negação
+		if intensify {
+			v *= 1.5
+			intensify = false
 		}
-
+		if len(negateScopes) > 0 {
+			v = -v // inverte o valor já intensificado
+		}
+		// Decrementa escopos de negação only after sentiment word
+		for j := range negateScopes {
+			negateScopes[j]--
+		}
+		// Remove escopos expirados
+		var tmp []int
+		for _, n := range negateScopes {
+			if n > 0 {
+				tmp = append(tmp, n)
+			}
+		}
+		negateScopes = tmp
 		scoreSum += v
 		nAnalyzed++
-
-		negScopes = decreaseScopes(negScopes)
 	}
-
 	if nAnalyzed == 0 {
-		return SentimentResult{
-			Score:          0,
-			Classification: "neutral",
-		}
+		return SentimentResult{Score: 0, Classification: "neutral"}
 	}
-
+	// 1️⃣ Normaliza score
 	score := scoreSum / float64(nAnalyzed)
-
-	// 🔥 Regra MBRAS (antes da classificação)
+	// 2️⃣ Aplica regra MBRAS (após normalização)
 	if strings.Contains(strings.ToLower(msg.UserID), "mbras") && score > 0 {
 		score *= 2
 	}
-
+	// 3️⃣ Classificação
 	class := "neutral"
 	if score > 0.1 {
 		class = "positive"
 	} else if score < -0.1 {
 		class = "negative"
 	}
-
 	return SentimentResult{
 		Score:          score,
 		Classification: class,
 	}
+	// (bloco removido, já retornado acima)
 }
 
 func decreaseScopes(scopes []int) []int {
@@ -137,39 +118,36 @@ func decreaseScopes(scopes []int) []int {
 	return updated
 }
 
+// Tokenize splits the content into words using a fast FieldsFunc and strips accents.
 func Tokenize(content string) []string {
-	var tokens []string
-	var token strings.Builder
-
-	for _, r := range content {
-		if unicode.IsSpace(r) {
-			if token.Len() > 0 {
-				tokens = append(tokens, token.String())
-				token.Reset()
-			}
-			continue
+	tokens := strings.FieldsFunc(content, func(r rune) bool {
+		// Separadores: espaço, pontuação, símbolos
+		return !(unicode.IsLetter(r) || unicode.IsNumber(r))
+	})
+	result := make([]string, 0, len(tokens))
+	for _, t := range tokens {
+		norm := NormalizeToken(t)
+		if norm != "" {
+			result = append(result, norm)
 		}
-		token.WriteRune(r)
 	}
-
-	if token.Len() > 0 {
-		tokens = append(tokens, token.String())
-	}
-
-	return tokens
+	return result
 }
 
+// NormalizeToken strips accents and lowercases the token, without regexp.
 func NormalizeToken(token string) string {
-	normed := norm.NFKD.String(token)
-
-	var b strings.Builder
-	for _, r := range normed {
-		// Remove marcas de combinação (acentos)
-		if unicode.Is(unicode.Mn, r) {
-			continue
+	// NFKD: decompor acentos
+	t := transform.Chain(norm.NFD, transform.RemoveFunc(func(r rune) bool {
+		return unicode.Is(unicode.Mn, r)
+	}), norm.NFC)
+	result, _, _ := transform.String(t, token)
+	result = strings.ToLower(result)
+	// Remover caracteres não a-z0-9 sem regexp
+	buf := make([]rune, 0, len(result))
+	for _, r := range result {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			buf = append(buf, r)
 		}
-		b.WriteRune(r)
 	}
-
-	return strings.ToLower(b.String())
+	return string(buf)
 }

@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"backend-challenge-092025/internal/domain"
+	errpkg "backend-challenge-092025/pkg/errors"
+	validatorpkg "backend-challenge-092025/pkg/validator"
 )
 
 // Handler handles HTTP requests.
@@ -21,27 +23,32 @@ func NewHandler(p *domain.Processor) *Handler {
 
 func (h *Handler) AnalyzeFeed(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		errpkg.BadRequest(w, []byte(`{"error": "Method Not Allowed"}`))
 		return
 	}
 	if !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
-		http.Error(w, "Unsupported Media Type", http.StatusUnsupportedMediaType)
+		errpkg.BadRequest(w, []byte(`{"error": "Unsupported Media Type"}`))
 		return
 	}
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		errpkg.BadRequest(w, errpkg.RespJSONDecodeFailure)
 		return
 	}
 	var req domain.AnalyzeFeedRequest
 	if err := json.Unmarshal(body, &req); err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		errpkg.BadRequest(w, errpkg.RespJSONDecodeFailure)
+		return
+	}
+	if err := validatorpkg.ValidateStruct(req); err != nil {
+		respBody, _ := json.Marshal(validatorpkg.ToErrResponse(err))
+		errpkg.ValidationErrors(w, respBody)
 		return
 	}
 	now := time.Now().UTC()
 	resp, code, msg := h.Processor.AnalyzeFeed(req, now)
 	if code == 400 {
-		http.Error(w, msg, http.StatusBadRequest)
+		errpkg.BadRequest(w, []byte(msg))
 		return
 	}
 	if code == 422 {
@@ -50,6 +57,5 @@ func (h *Handler) AnalyzeFeed(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(msg))
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	errpkg.WriteJSON(w, http.StatusOK, resp)
 }

@@ -27,23 +27,28 @@ func (ad *AnomalyDetector) Detect(messages []Message, sentiments []SentimentResu
 }
 
 func detectBurst(messages []Message) bool {
-	userTimes := map[string][]time.Time{}
+	byUser := make(map[string][]time.Time)
 	for _, m := range messages {
-		userTimes[m.UserID] = append(userTimes[m.UserID], m.Timestamp)
+		byUser[m.UserID] = append(byUser[m.UserID], m.Timestamp)
 	}
-	for _, times := range userTimes {
-		if len(times) <= 10 {
-			continue
-		}
-		sort.Slice(times, func(i, j int) bool { return times[i].Before(times[j]) })
-		for i := 0; i <= len(times)-11; i++ {
-			if times[i+10].Sub(times[i]) <= 5*time.Minute {
+	for _, tsList := range byUser {
+		sort.Slice(tsList, func(i, j int) bool {
+			return tsList[i].Before(tsList[j])
+		})
+		i := 0
+		for j := range tsList {
+			for tsList[j].Sub(tsList[i]) > 5*time.Minute {
+				i++
+			}
+			if (j - i + 1) > 10 {
 				return true
 			}
 		}
 	}
 	return false
 }
+
+// ...existing code...
 
 func detectAlternating(sentiments []SentimentResult) bool {
 	if len(sentiments) < 10 {
