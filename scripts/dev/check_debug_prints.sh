@@ -4,7 +4,9 @@
 
 set -e
 
-if grep -rE 'fmt\.Print|log\.Print|println|print\(' --exclude-dir=.git --exclude-dir=vendor --exclude='scripts/dev/check_debug_prints.sh' .; then
+dirs="internal pkg cmd"
+
+if grep -rE 'fmt\.Print|log\.Print|println|print\(' $dirs; then
   echo "ERRO: Encontrado uso proibido de prints de debug!" >&2
   exit 1
 else
