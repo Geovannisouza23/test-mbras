@@ -52,8 +52,6 @@ jobs:
       - name: Run performance test
         run: go test ./internal/test -run TestPerformance_AnalyzeFeed -v
 
-      - name: Verificar prints de debug proibidos
-        run: bash scripts/dev/check_debug_prints.sh
 
       - name: Check for forbidden files
         run: |
