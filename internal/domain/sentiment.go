@@ -1,3 +1,4 @@
+// Package domain contains core business logic and domain models.
 package domain
 
 import (
@@ -11,12 +12,14 @@ import (
 
 var reTokenize = regexp.MustCompile(`\p{L}+[\p{Mn}]*|\d+`)
 
+// SentimentAnalyzer performs sentiment analysis using a lexicon, intensifiers, and negations.
 type SentimentAnalyzer struct {
 	Lexicon      map[string]float64
 	Intensifiers map[string]struct{}
 	Negations    map[string]struct{}
 }
 
+// NewSentimentAnalyzer creates a new SentimentAnalyzer with the given lexicon, intensifiers, and negations.
 func NewSentimentAnalyzer(
 	lexicon map[string]float64,
 	intensifiers map[string]struct{},
@@ -29,6 +32,7 @@ func NewSentimentAnalyzer(
 	}
 }
 
+// Analyze evaluates the sentiment of a message and returns the result.
 func (s *SentimentAnalyzer) Analyze(msg Message) SentimentResult {
 	var (
 		negateScopes []int // cada item é o número de tokens restantes sob negação
@@ -108,6 +112,7 @@ func (s *SentimentAnalyzer) Analyze(msg Message) SentimentResult {
 	// (bloco removido, já retornado acima)
 }
 
+// decreaseScopes decrements each scope and returns only those still active (>0).
 func decreaseScopes(scopes []int) []int {
 	var updated []int
 	for _, v := range scopes {
@@ -118,6 +123,7 @@ func decreaseScopes(scopes []int) []int {
 	return updated
 }
 
+// Tokenize splits the content into words using a fast FieldsFunc and strips accents.
 // Tokenize splits the content into words using a fast FieldsFunc and strips accents.
 func Tokenize(content string) []string {
 	tokens := strings.FieldsFunc(content, func(r rune) bool {
@@ -134,6 +140,7 @@ func Tokenize(content string) []string {
 	return result
 }
 
+// NormalizeToken strips accents and lowercases the token, without regexp.
 // NormalizeToken strips accents and lowercases the token, without regexp.
 func NormalizeToken(token string) string {
 	// NFKD: decompor acentos
