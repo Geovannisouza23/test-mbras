@@ -11,9 +11,7 @@ import (
 func main() {
 	processor := domain.NewProcessor()
 	handler := app.NewHandler(processor)
-
 	http.HandleFunc("/analyze-feed", handler.AnalyzeFeed)
-	log.Println("Server started on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}

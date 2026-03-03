@@ -1,23 +1,79 @@
-name: CI
+name: CI Backend Challenge
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, uat ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, uat ]
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-      - name: Lint
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Lint vet
         run: go vet ./...
+
+      - name: Lint golint
+        run: |
+          go install golang.org/x/lint/golint@latest
+          golint ./...
+
       - name: Build
         run: go build ./...
-      - name: Test
-        run: go test ./... -v
+
+      - name: Run unit tests
+        run: go test ./... -v -coverprofile=coverage.out
+
+      - name: Check test coverage
+        run: |
+          go tool cover -func=coverage.out | grep total | awk '{print $3}'
+
+      - name: Run performance test
+        run: go test ./internal/test -run TestPerformance_AnalyzeFeed -v
+
+      - name: Check for forbidden debug prints
+        run: |
+          ! grep -rE 'fmt\.Print|log\.Print|println|print\(' --exclude-dir=.git --exclude-dir=vendor .
+
+      - name: Check for forbidden files
+        run: |
+          test ! -f internal/test/test_normalizacao.go
+
+      - name: Check Go formatting
+        run: |
+          gofmt -l . | (! grep .)
+
+      - name: Check README
+        run: |
+          test -f README
+
+      - name: Check OpenAPI/Swagger docs
+        run: |
+          test -f docs/swagger.yaml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.out

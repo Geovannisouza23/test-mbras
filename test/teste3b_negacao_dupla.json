@@ -1,0 +1,17 @@
+{
+  "messages": [
+    {
+      "id": "msg_5",
+      "user_id": "user_abc",
+      "content": "não não gostei",
+      "timestamp": "2026-03-03T16:53:08Z",
+      "reactions": 0,
+      "shares": 0,
+      "views": 1,
+      "hashtags": [
+        "#negacao"
+      ]
+    }
+  ],
+  "time_window_minutes": 10
+}

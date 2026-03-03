@@ -1,0 +1,17 @@
+{
+  "messages": [
+    {
+      "id": "msg_3",
+      "user_id": "user_mbras_123",
+      "content": "teste técnico mbras",
+      "timestamp": "2026-03-03T16:53:08Z",
+      "reactions": 2,
+      "shares": 1,
+      "views": 3,
+      "hashtags": [
+        "#especial"
+      ]
+    }
+  ],
+  "time_window_minutes": 10
+}

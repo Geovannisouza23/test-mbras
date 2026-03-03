@@ -24,7 +24,8 @@ func NewTrendingTopics() *TrendingTopics {
 
 func (tt *TrendingTopics) TopHashtags(messages []Message, sentiments []SentimentResult, now time.Time) []string {
 
-	tagStats := map[string]*hashtagStats{}
+	tagStats := make(map[string]*hashtagStats, len(messages)*2)
+	log10Cache := make(map[int]float64)
 	for i, msg := range messages {
 		for _, tag := range msg.Hashtags {
 			if !strings.HasPrefix(tag, "#") || len(tag) < 2 {
@@ -46,8 +47,14 @@ func (tt *TrendingTopics) TopHashtags(messages []Message, sentiments []Sentiment
 			}
 			w *= mod
 			// Long hashtag adjustment
-			if l := len([]rune(tag)); l > 8 {
-				w *= math.Log10(float64(l)) / math.Log10(8)
+			l := len([]rune(tag))
+			if l > 8 {
+				logL, ok := log10Cache[l]
+				if !ok {
+					logL = math.Log10(float64(l)) / math.Log10(8)
+					log10Cache[l] = logL
+				}
+				w *= logL
 			}
 			stat, ok := tagStats[tag]
 			if !ok {
@@ -60,8 +67,7 @@ func (tt *TrendingTopics) TopHashtags(messages []Message, sentiments []Sentiment
 			stat.SentimentType = stype
 		}
 	}
-	// Sort
-	var stats []*hashtagStats
+	stats := make([]*hashtagStats, 0, len(tagStats))
 	for _, s := range tagStats {
 		stats = append(stats, s)
 	}
@@ -77,7 +83,7 @@ func (tt *TrendingTopics) TopHashtags(messages []Message, sentiments []Sentiment
 		}
 		return stats[i].Tag < stats[j].Tag
 	})
-	var result []string
+	result := make([]string, 0, 5)
 	for i := 0; i < len(stats) && i < 5; i++ {
 		result = append(result, stats[i].Tag)
 	}
