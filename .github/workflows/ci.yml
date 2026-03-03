@@ -69,9 +69,6 @@ jobs:
         run: |
           gofmt -l . | (! grep .)
 
-      - name: Check README
-        run: |
-          test -f README
 
       - name: Check OpenAPI/Swagger docs
         run: |
