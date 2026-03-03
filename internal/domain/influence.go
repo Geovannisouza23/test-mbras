@@ -12,6 +12,7 @@ import (
 // InfluenceCalculator computes deterministic influence scores for users and content.
 type InfluenceCalculator struct{}
 
+// NewInfluenceCalculator creates a new instance of InfluenceCalculator.
 func NewInfluenceCalculator() *InfluenceCalculator {
 	return &InfluenceCalculator{}
 }
