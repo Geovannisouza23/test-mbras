@@ -25,7 +25,6 @@ Implementado em **Go 1.24+**, seguindo princípios de **Clean Architecture**, co
 
 ```bash
 make build
-./bin/server
 ```
 
 ou diretamente:
