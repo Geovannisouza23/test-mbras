@@ -12,15 +12,17 @@ import (
 	validatorpkg "backend-challenge-092025/pkg/validator"
 )
 
-// Handler handles HTTP requests.
+// Handler handles HTTP requests for the backend challenge.
 type Handler struct {
 	Processor *domain.Processor
 }
 
+// NewHandler creates a Handler configured with the given Processor.
 func NewHandler(p *domain.Processor) *Handler {
 	return &Handler{Processor: p}
 }
 
+// AnalyzeFeed handles POST /analyze-feed requests and writes the analysis response as JSON.
 func (h *Handler) AnalyzeFeed(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		errpkg.BadRequest(w, []byte(`{"error": "Method Not Allowed"}`))

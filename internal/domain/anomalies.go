@@ -5,13 +5,15 @@ import (
 	"time"
 )
 
-// AnomalyDetector detects bursts, alternations, and syncs.
+// AnomalyDetector detects bursts, alternations, and syncs in message streams.
 type AnomalyDetector struct{}
 
+// NewAnomalyDetector constructs an AnomalyDetector.
 func NewAnomalyDetector() *AnomalyDetector {
 	return &AnomalyDetector{}
 }
 
+// Detect analyzes messages/sentiments and returns detected anomaly types.
 func (ad *AnomalyDetector) Detect(messages []Message, sentiments []SentimentResult) []string {
 	var anomalies []string
 	if burst := detectBurst(messages); burst {
