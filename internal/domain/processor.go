@@ -84,8 +84,8 @@ func (p *Processor) AnalyzeFeed(req AnalyzeFeedRequest, now time.Time) (AnalyzeF
 		s := sentimentAnalyzer.Analyze(m)
 		sentiments = append(sentiments, s)
 		if !s.Excluded {
-			   distCount[s.Classification]++
-			   totalForDist++
+			distCount[s.Classification]++
+			totalForDist++
 		}
 	}
 	dist := FeedSentimentDistribution{Positive: 0, Neutral: 0, Negative: 0}
