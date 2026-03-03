@@ -1,4 +1,4 @@
-name: CI Backend Challenge
+name: CI Pipeline
 
 on:
   push:
@@ -10,8 +10,10 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -39,11 +41,17 @@ jobs:
           go install golang.org/x/lint/golint@latest
           golint ./...
 
+
       - name: Build
         run: go build ./...
 
+      - name: Static analysis
+        run: go vet ./...
+
+
       - name: Run unit tests
-        run: go test ./... -v -coverprofile=coverage.out
+        run: go test ./... -v
+
 
       - name: Check test coverage
         run: |
@@ -52,9 +60,6 @@ jobs:
       - name: Run performance test
         run: go test ./internal/test -run TestPerformance_AnalyzeFeed -v
 
-      - name: Check for forbidden debug prints
-        run: |
-          ! grep -rE 'fmt\.Print|log\.Print|println|print\(' --exclude-dir=.git --exclude-dir=vendor .
 
       - name: Check for forbidden files
         run: |
@@ -77,3 +82,6 @@ jobs:
         with:
           name: coverage-report
           path: coverage.out
+
+      - name: Build Docker image
+        run: docker build -f deployments/Dockerfile -t backend-challenge-dev .

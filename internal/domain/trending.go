@@ -16,12 +16,15 @@ type hashtagStats struct {
 }
 
 // TrendingTopics analyzes hashtags for trending topics.
+// TrendingTopics analyzes hashtags for trending topics.
 type TrendingTopics struct{}
 
+// NewTrendingTopics creates a new TrendingTopics analyzer.
 func NewTrendingTopics() *TrendingTopics {
 	return &TrendingTopics{}
 }
 
+// TopHashtags returns the top trending hashtags based on messages and sentiment results.
 func (tt *TrendingTopics) TopHashtags(messages []Message, sentiments []SentimentResult, now time.Time) []string {
 
 	tagStats := make(map[string]*hashtagStats, len(messages)*2)

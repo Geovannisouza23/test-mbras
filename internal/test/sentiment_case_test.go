@@ -1,8 +1,8 @@
 package test
 
 import (
-	"testing"
 	"backend-challenge-092025/internal/domain"
+	"testing"
 	"time"
 )
 
@@ -37,10 +37,10 @@ func TestSentimentSpecificCases(t *testing.T) {
 				UserID:    c.userID,
 				Content:   c.content,
 				Timestamp: now,
-				Reactions:  1,
-				Shares:     0,
-				Views:      1,
-				Hashtags:   []string{"#produto"},
+				Reactions: 1,
+				Shares:    0,
+				Views:     1,
+				Hashtags:  []string{"#produto"},
 			}
 			analyzer := domain.NewSentimentAnalyzer(processor.Lexicon, processor.Intensifiers, processor.Negations)
 			result := analyzer.Analyze(msg)
